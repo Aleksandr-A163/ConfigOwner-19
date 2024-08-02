@@ -1,6 +1,5 @@
 package tests;
-
-import api.AuthApi;
+import helpers.WithLogin;
 import io.qameta.allure.Owner;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -13,10 +12,12 @@ import pages.ProfilePage;
 public class BooksStoreTests extends TestBase {
 
     final ProfilePage profilePage = new ProfilePage();
-    AddNewBook addNewBook = new AddNewBook ();
+    final AddNewBook addNewBook = new AddNewBook ();
 
     @Test
     @DisplayName("Delete a book from user profile")
+    @Owner("Anosov Aleksandr")
+    @WithLogin
     void deleteBookFromProfileBooksListTest() {
 
         addNewBook.addListOfBook();

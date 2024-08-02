@@ -16,13 +16,6 @@ public class RequestResponseSpecs {
             .log().all()
             .contentType(JSON);
 
-    public static RequestSpecification authorizedRequestSpec(String token) {
-        return with()
-            .filter(withCustomTemplates())
-            .log().all()
-            .contentType(JSON)
-            .header("Authorization", "Bearer " + token);
-    }
 
     public static ResponseSpecification loginResponseSpec200 = new ResponseSpecBuilder()
             .expectStatusCode(200)
