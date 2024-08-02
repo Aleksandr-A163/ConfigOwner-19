@@ -1,14 +1,12 @@
 package models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.util.Date;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginResponseModel {
 
-    private String username, userId, password, token, expires, isActive;
-    @JsonProperty("created_date")
-    private Date createdDate;
+    String userId, expires, token;
 }

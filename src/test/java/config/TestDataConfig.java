@@ -2,7 +2,7 @@ package config;
 
 import org.aeonbits.owner.Config;
 
-@Config.Sources({"classpath:config/testdata.properties"})
+@Config.Sources({"classpath:userdata.properties"})
 
 public interface TestDataConfig extends Config {
     @Key("userLogin")
