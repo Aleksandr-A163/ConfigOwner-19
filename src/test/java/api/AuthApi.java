@@ -20,22 +20,50 @@ public class AuthApi {
         RegistrationLoginRequestModel userData = new RegistrationLoginRequestModel();
         userData.setUserName(testDataConfig.userLogin());
         userData.setPassword(testDataConfig.userPassword());
-        return given(registerAndLoginRequestSpec)
+
+        // Get raw response as string
+        String rawResponse = (given(registerAndLoginRequestSpec)
                 .body(userData)
                 .when()
                 .post("/Account/v1/User")
                 .then()
                 .spec(responseSpec201)
-                .extract().as(LoginResponseModel.class);
-    }
+                .extract().response().asString());
 
+        // Debug information to verify the raw response
+        System.out.println("Raw Response: " + rawResponse);
+
+        // Parse the raw response to LoginResponseModel only if the content type is JSON
+        if (rawResponse.contains("application/json")) {
+            LoginResponseModel response = given()
+                    .contentType("application/json")
+                    .body(rawResponse)
+                    .when()
+                    .post()
+                    .as(LoginResponseModel.class);
+
+            // Debug information to verify the parsed response
+            System.out.println("Authorization Response: " + response);
+
+            return response;
+        } else {
+            throw new IllegalStateException("Unexpected content type: " + rawResponse);
+        }
+    }
 
     @Step("Set authorization cookies")
     public static void setCookiesInBrowser(LoginResponseModel authResponse) {
+        if (authResponse == null) {
+            throw new IllegalArgumentException("authResponse is null");
+        }
+        if (authResponse.getUserId() == null || authResponse.getExpires() == null || authResponse.getToken() == null) {
+            throw new IllegalArgumentException("One or more required attributes in authResponse are null");
+        }
+
         open("/images/Toolsqa.jpg");
-        getWebDriver().manage().addCookie(new Cookie("token", authResponse.getToken()));
         getWebDriver().manage().addCookie(new Cookie("userID", authResponse.getUserId()));
         getWebDriver().manage().addCookie(new Cookie("expires", authResponse.getExpires()));
+        getWebDriver().manage().addCookie(new Cookie("token", authResponse.getToken()));
     }
 
     public static String extractValueFromCookieString(String cookieString) {

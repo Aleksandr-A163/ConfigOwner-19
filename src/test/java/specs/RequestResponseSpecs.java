@@ -13,8 +13,8 @@ public class RequestResponseSpecs {
 
     public static RequestSpecification registerAndLoginRequestSpec = with()
             .filter(withCustomTemplates())
-            .log().all()
-            .contentType(JSON);
+            .contentType(JSON)
+            .log().all();
 
 
     public static ResponseSpecification loginResponseSpec200 = new ResponseSpecBuilder()

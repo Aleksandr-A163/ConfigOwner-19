@@ -19,7 +19,6 @@ public class BooksStoreTests extends TestBase {
     @Owner("Anosov Aleksandr")
     @WithLogin
     void deleteBookFromProfileBooksListTest() {
-
         addNewBook.addListOfBook();
         profilePage.openProfilePage()
             .removeBanner()
