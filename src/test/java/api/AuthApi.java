@@ -8,6 +8,7 @@ import org.openqa.selenium.Cookie;
 import org.aeonbits.owner.ConfigFactory;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 
+import io.restassured.response.Response;
 import static io.restassured.RestAssured.given;
 import static specs.RequestResponseSpecs.*;
 
@@ -15,39 +16,64 @@ public class AuthApi {
 
     static final TestDataConfig testDataConfig = ConfigFactory.create(TestDataConfig.class, System.getProperties());
 
+    private static String userId;
+
     @Step("Create a new user")
-    public static LoginResponseModel authorization() {
+    public static void registerUser() {
         RegistrationLoginRequestModel userData = new RegistrationLoginRequestModel();
         userData.setUserName(testDataConfig.userLogin());
         userData.setPassword(testDataConfig.userPassword());
 
-        // Get raw response as string
-        String rawResponse = (given(registerAndLoginRequestSpec)
+        Response response = given(registerAndLoginRequestSpec)
                 .body(userData)
                 .when()
                 .post("/Account/v1/User")
                 .then()
                 .spec(responseSpec201)
-                .extract().response().asString());
+                .extract().response();
 
-        // Debug information to verify the raw response
-        System.out.println("Raw Response: " + rawResponse);
+        System.out.println("Registration Raw Response: " + response.asString());
 
-        // Parse the raw response to LoginResponseModel only if the content type is JSON
-        if (rawResponse.contains("application/json")) {
-            LoginResponseModel response = given()
-                    .contentType("application/json")
-                    .body(rawResponse)
-                    .when()
-                    .post()
-                    .as(LoginResponseModel.class);
-
-            // Debug information to verify the parsed response
-            System.out.println("Authorization Response: " + response);
-
-            return response;
+        // Extract userId from the response
+        if (response.getContentType().contains("application/json")) {
+            RegistrationResponseModel registrationResponse = response.as(RegistrationResponseModel.class);
+            userId = registrationResponse.getUserId();
         } else {
-            throw new IllegalStateException("Unexpected content type: " + rawResponse);
+            throw new IllegalStateException("Unexpected content type: " + response.getContentType());
+        }
+    }
+
+    @Step("Get authorization token")
+    public static LoginResponseModel getToken() {
+        RegistrationLoginRequestModel userData = new RegistrationLoginRequestModel();
+        userData.setUserName(testDataConfig.userLogin());
+        userData.setPassword(testDataConfig.userPassword());
+
+        Response response = given(registerAndLoginRequestSpec)
+                .body(userData)
+                .when()
+                .post("/Account/v1/GenerateToken")
+                .then()
+                .spec(loginResponseSpec200)
+                .extract().response();
+
+        System.out.println("Token Raw Response: " + response.asString());
+
+        if (response.getContentType().contains("application/json")) {
+            LoginResponseModel loginResponse = response.as(LoginResponseModel.class);
+
+            // Set the userId obtained during registration
+            loginResponse.setUserId(userId);
+
+            System.out.println("Authorization Token Response: " + loginResponse);
+
+            if (loginResponse.getUserId() == null || loginResponse.getExpires() == null || loginResponse.getToken() == null) {
+                throw new IllegalArgumentException("One or more required attributes in authResponse are null");
+            }
+
+            return loginResponse;
+        } else {
+            throw new IllegalStateException("Unexpected content type: " + response.getContentType());
         }
     }
 

@@ -6,14 +6,8 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LoginResponseModel {
+public class RegistrationResponseModel {
 
     @JsonProperty("userID")
     private String userId;
-
-    @JsonProperty("expires")
-    private String expires;
-
-    @JsonProperty("token")
-    private String token;
 }
